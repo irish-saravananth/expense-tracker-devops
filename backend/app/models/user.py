@@ -28,8 +28,14 @@ class User(db.Model):
         nullable=False,
     )
 
+    expenses = db.relationship(
+        "Expense",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
     def to_dict(self):
-        """Return a JSON-serializable representation of the user."""
+        """Serialize user."""
 
         return {
             "id": self.id,

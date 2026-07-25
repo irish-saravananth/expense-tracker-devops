@@ -6,7 +6,7 @@ from app.database.db import db, migrate
 
 # Import models so Flask-Migrate detects them
 from app.models.user import User
-
+from app.models.expense import Expense
 
 jwt = JWTManager()
 
