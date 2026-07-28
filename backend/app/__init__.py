@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 from app.config.settings import Config
 from app.database.db import db, migrate
 from app.api.expense import expense_bp
+from app.errors.handlers import register_error_handlers
 
 # Import models so Flask-Migrate detects them
 from app.models.user import User
@@ -31,5 +32,8 @@ def create_app():
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(expense_bp)
+
+    # Register global error handlers
+    register_error_handlers(app)
 
     return app

@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.services.expense_service import ExpenseService
+from app.utils.validators import validate_expense
 
 expense_bp = Blueprint(
     "expense",
@@ -19,6 +20,8 @@ def create_expense():
 
     user_id = int(get_jwt_identity())
     data = request.get_json()
+
+    validate_expense(data)
 
     expense = ExpenseService.create_expense(
         user_id=user_id,
@@ -46,7 +49,7 @@ def get_all_expenses():
 
     return jsonify(
         [expense.to_dict() for expense in expenses]
-    )
+    ), 200
 
 
 @expense_bp.route("/<int:expense_id>", methods=["GET"])
@@ -62,13 +65,16 @@ def get_expense(expense_id):
     )
 
     if not expense:
-        return jsonify(
-            {
-                "message": "Expense not found"
-            }
-        ), 404
+        return (
+            jsonify(
+                {
+                    "message": "Expense not found",
+                }
+            ),
+            404,
+        )
 
-    return jsonify(expense.to_dict())
+    return jsonify(expense.to_dict()), 200
 
 
 @expense_bp.route("/<int:expense_id>", methods=["PUT"])
@@ -84,13 +90,36 @@ def update_expense(expense_id):
     )
 
     if not expense:
-        return jsonify(
-            {
-                "message": "Expense not found"
-            }
-        ), 404
+        return (
+            jsonify(
+                {
+                    "message": "Expense not found",
+                }
+            ),
+            404,
+        )
 
     data = request.get_json()
+
+    # Validate only the fields supplied by the client
+    merged_data = {
+        "title": data.get("title", expense.title),
+        "description": data.get(
+            "description",
+            expense.description,
+        ),
+        "amount": data.get("amount", expense.amount),
+        "category": data.get(
+            "category",
+            expense.category,
+        ),
+        "expense_date": data.get(
+            "expense_date",
+            expense.expense_date.strftime("%Y-%m-%d"),
+        ),
+    }
+
+    validate_expense(merged_data)
 
     if "expense_date" in data:
         data["expense_date"] = datetime.strptime(
@@ -103,7 +132,7 @@ def update_expense(expense_id):
         data,
     )
 
-    return jsonify(expense.to_dict())
+    return jsonify(expense.to_dict()), 200
 
 
 @expense_bp.route("/<int:expense_id>", methods=["DELETE"])
@@ -119,16 +148,22 @@ def delete_expense(expense_id):
     )
 
     if not expense:
-        return jsonify(
-            {
-                "message": "Expense not found"
-            }
-        ), 404
+        return (
+            jsonify(
+                {
+                    "message": "Expense not found",
+                }
+            ),
+            404,
+        )
 
     ExpenseService.delete_expense(expense)
 
-    return jsonify(
-        {
-            "message": "Expense deleted successfully"
-        }
+    return (
+        jsonify(
+            {
+                "message": "Expense deleted successfully",
+            }
+        ),
+        200,
     )
