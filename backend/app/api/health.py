@@ -9,12 +9,13 @@ health_bp = Blueprint(
 
 @health_bp.route("/health", methods=["GET"])
 def health():
-    """Health check endpoint."""
-
-    return jsonify(
-        {
-            "status": "UP",
-            "service": "expense-tracker-api",
-            "version": "0.1.0",
-        }
+    return (
+        jsonify(
+            {
+                "status": "UP",
+                "service": "expense-tracker-api",
+                "version": "0.1.0",
+            }
+        ),
+        200,
     )
