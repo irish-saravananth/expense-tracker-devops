@@ -14,6 +14,8 @@ EMAIL_REGEX = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
 
 def validate_email(email):
+    email = (email or "").strip()
+
     if not email:
         raise ValidationError("Email is required.")
 
@@ -22,6 +24,8 @@ def validate_email(email):
 
 
 def validate_password(password):
+    password = password or ""
+
     if not password:
         raise ValidationError("Password is required.")
 
@@ -50,9 +54,9 @@ def validate_register(data):
     if not data:
         raise ValidationError("Request body is required.")
 
-    name = data.get("name", "").strip()
-    email = data.get("email", "").strip()
-    password = data.get("password", "")
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    password = data.get("password") or ""
 
     if not name:
         raise ValidationError("Name is required.")
@@ -65,8 +69,8 @@ def validate_login(data):
     if not data:
         raise ValidationError("Request body is required.")
 
-    email = data.get("email", "").strip()
-    password = data.get("password", "")
+    email = (data.get("email") or "").strip()
+    password = data.get("password") or ""
 
     validate_email(email)
 
@@ -78,7 +82,7 @@ def validate_expense(data):
     if not data:
         raise ValidationError("Request body is required.")
 
-    title = data.get("title", "").strip()
+    title = (data.get("title") or "").strip()
 
     if not title:
         raise ValidationError("Title is required.")
@@ -105,7 +109,7 @@ def validate_expense(data):
             "Amount must be greater than zero."
         )
 
-    category = data.get("category", "").strip()
+    category = (data.get("category") or "").strip()
 
     if not category:
         raise ValidationError("Category is required.")
@@ -124,7 +128,7 @@ def validate_expense(data):
             "Expense date must be in YYYY-MM-DD format."
         )
 
-    description = data.get("description", "")
+    description = data.get("description") or ""
 
     if len(description) > 500:
         raise ValidationError(

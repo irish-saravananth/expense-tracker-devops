@@ -9,19 +9,19 @@ from app.api.expense import expense_bp
 from app.errors.handlers import register_error_handlers
 
 # Import models so Flask-Migrate detects them
-from app.models.user import User
-from app.models.expense import Expense
+from app.models.user import User  # noqa: F401
+from app.models.expense import Expense  # noqa: F401
 
 jwt = JWTManager()
 
 
-def create_app():
+def create_app(config_class=Config):
     """Application factory."""
 
     app = Flask(__name__)
 
     # Load configuration
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
 
     # Configure logging
     configure_logging(app)

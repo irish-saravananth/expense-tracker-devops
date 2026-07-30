@@ -1,15 +1,13 @@
 import os
-
 from datetime import timedelta
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class Config:
-    """
-    Base application configuration.
-    """
+class BaseConfig:
+    """Base application configuration."""
 
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
 
@@ -23,11 +21,8 @@ class Config:
     DATABASE_URL = os.getenv("DATABASE_URL")
 
     if DATABASE_URL:
-
         SQLALCHEMY_DATABASE_URI = DATABASE_URL
-
     else:
-
         DB_HOST = os.getenv("DB_HOST", "localhost")
         DB_PORT = os.getenv("DB_PORT", "5432")
         DB_NAME = os.getenv("DB_NAME", "expense_tracker")
@@ -40,3 +35,33 @@ class Config:
         )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    TESTING = False
+    DEBUG = False
+
+
+class DevelopmentConfig(BaseConfig):
+    """Development configuration."""
+
+    DEBUG = True
+
+
+class TestingConfig(BaseConfig):
+    """Testing configuration."""
+
+    TESTING = True
+
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "TEST_DATABASE_URL",
+        "sqlite:///:memory:",
+    )
+
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=5)
+
+
+class ProductionConfig(BaseConfig):
+    """Production configuration."""
+
+    DEBUG = False
+
+
+Config = DevelopmentConfig
