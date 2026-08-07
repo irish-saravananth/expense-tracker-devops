@@ -9,7 +9,10 @@ load_dotenv()
 class BaseConfig:
     """Base application configuration."""
 
-    SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
+    SECRET_KEY = os.getenv(
+        "SECRET_KEY",
+        "change-me",
+    )
 
     JWT_SECRET_KEY = os.getenv(
         "JWT_SECRET_KEY",
@@ -27,7 +30,10 @@ class BaseConfig:
         DB_PORT = os.getenv("DB_PORT", "5432")
         DB_NAME = os.getenv("DB_NAME", "expense_tracker")
         DB_USER = os.getenv("DB_USER", "expense_user")
-        DB_PASSWORD = os.getenv("DB_PASSWORD", "expense_password")
+        DB_PASSWORD = os.getenv(
+            "DB_PASSWORD",
+            "expense_password",
+        )
 
         SQLALCHEMY_DATABASE_URI = (
             f"postgresql://{DB_USER}:{DB_PASSWORD}"
@@ -35,6 +41,7 @@ class BaseConfig:
         )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     TESTING = False
     DEBUG = False
 
@@ -64,4 +71,18 @@ class ProductionConfig(BaseConfig):
     DEBUG = False
 
 
-Config = DevelopmentConfig
+ENVIRONMENT = os.getenv(
+    "FLASK_ENV",
+    "development",
+).lower()
+
+config_map = {
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
+}
+
+Config = config_map.get(
+    ENVIRONMENT,
+    DevelopmentConfig,
+)
