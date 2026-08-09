@@ -25,8 +25,8 @@ steps:
 # Install Dependencies
 - script: |
     python -m pip install --upgrade pip
-    pip install pytest pytest-cov pytest-xdist
-  displayName: 'Install Test Dependencies'
+    pip install -r backend/requirements.txt
+  displayName: 'Install Dependencies'
 
 # Run Tests
 - script: |
