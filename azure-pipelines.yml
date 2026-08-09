@@ -1,5 +1,5 @@
 trigger:
-- feature/cicd-pipeline
+  - feature/cicd-pipeline
 
 pool:
   vmImage: ubuntu-latest
@@ -8,10 +8,10 @@ variables:
   pythonVersion: '3.12'
 
 steps:
-
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(pythonVersion)'
+  displayName: 'Use Python $(pythonVersion)'
 
 - script: |
     pwd
@@ -23,3 +23,13 @@ steps:
     python -m pip install --upgrade pip
     pip install -r backend/requirements.txt
   displayName: 'Install Dependencies'
+
+- script: |
+    python -m py_compile backend/app/__init__.py
+    python -m py_compile backend/app/config/settings.py
+    python -m py_compile backend/app/database/db.py
+  displayName: 'Validate Python Syntax'
+
+- script: |
+    docker build -t expense-tracker-api ./backend
+  displayName: 'Build Docker Image'
