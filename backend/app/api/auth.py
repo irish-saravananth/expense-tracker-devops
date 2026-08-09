@@ -1,0 +1,109 @@
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+)
+
+from app.database.db import db
+from app.models.user import User
+from app.services.auth_service import AuthService
+from app.utils.validators import (
+    validate_login,
+    validate_register,
+)
+
+auth_bp = Blueprint(
+    "auth",
+    __name__,
+    url_prefix="/api/v1/auth",
+)
+
+
+@auth_bp.route("/register", methods=["POST"])
+def register():
+    """Register a new user."""
+
+    data = request.get_json()
+
+    validate_register(
+        {
+            "name": data.get("username"),
+            "email": data.get("email"),
+            "password": data.get("password"),
+        }
+    )
+
+    user = AuthService.register(
+        data["username"],
+        data["email"],
+        data["password"],
+    )
+
+    if not user:
+        return (
+            jsonify(
+                {
+                    "message": "User already exists",
+                }
+            ),
+            409,
+        )
+
+    return jsonify(user.to_dict()), 201
+
+
+@auth_bp.route("/login", methods=["POST"])
+def login():
+    """Authenticate a user."""
+
+    data = request.get_json()
+
+    validate_login(data)
+
+    user = AuthService.authenticate(
+        data["email"],
+        data["password"],
+    )
+
+    if not user:
+        return (
+            jsonify(
+                {
+                    "message": "Invalid credentials",
+                }
+            ),
+            401,
+        )
+
+    access_token = create_access_token(
+        identity=str(user.id)
+    )
+
+    return jsonify(
+        {
+            "access_token": access_token,
+        }
+    ), 200
+
+
+@auth_bp.route("/me", methods=["GET"])
+@jwt_required()
+def me():
+    """Return the currently authenticated user."""
+
+    user_id = get_jwt_identity()
+
+    user = db.session.get(User, int(user_id))
+
+    if not user:
+        return (
+            jsonify(
+                {
+                    "message": "User not found",
+                }
+            ),
+            404,
+        )
+
+    return jsonify(user.to_dict()), 200
