@@ -2,34 +2,60 @@ trigger:
   - feature/cicd-pipeline
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 variables:
   pythonVersion: '3.12'
 
 steps:
+
+# Use Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(pythonVersion)'
   displayName: 'Use Python $(pythonVersion)'
 
+# Debug Repository Structure
 - script: |
     pwd
     ls -la
     find . -type f | sort
   displayName: 'Debug Repository Structure'
 
+# Install Dependencies
 - script: |
     python -m pip install --upgrade pip
-    pip install -r backend/requirements.txt
-  displayName: 'Install Dependencies'
+    pip install pytest pytest-cov pytest-xdist
+  displayName: 'Install Test Dependencies'
 
+# Run Tests
 - script: |
-    python -m py_compile backend/app/__init__.py
-    python -m py_compile backend/app/config/settings.py
-    python -m py_compile backend/app/database/db.py
-  displayName: 'Validate Python Syntax'
+    cd backend
 
+    pytest tests \
+      --junitxml=test-results.xml \
+      --cov=app \
+      --cov-report=xml:coverage.xml \
+      --cov-report=html
+  displayName: 'Run Unit Tests'
+
+# Publish Test Results
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'backend/test-results.xml'
+    failTaskOnFailedTests: true
+    testRunTitle: 'Expense Tracker Unit Tests'
+  displayName: 'Publish Test Results'
+
+# Publish Coverage Results
+- task: PublishCodeCoverageResults@2
+  inputs:
+    summaryFileLocation: 'backend/coverage.xml'
+    pathToSources: 'backend'
+  displayName: 'Publish Coverage Report'
+
+# Build Docker Image
 - script: |
-    docker build -t expense-tracker-api ./backend
+    docker build -t expense-tracker-api:latest ./backend
   displayName: 'Build Docker Image'
