@@ -1,6 +1,6 @@
-from flask import Blueprint
+from flask import Blueprint, Flask
 
-from app.utils.validators import ValidationError
+from app.errors.handlers import register_error_handlers
 
 
 def test_404_not_found(client):
@@ -38,18 +38,17 @@ def test_validation_error_handler(client):
     assert data["error"] == "Validation Error"
 
 
-def test_internal_server_error_handler(app, client):
-    test_bp = Blueprint("test_errors", __name__)
+def test_internal_server_error_handler():
+    app = Flask(__name__)
 
-    @test_bp.route("/api/v1/test-error")
+    register_error_handlers(app)
+
+    @app.route("/api/v1/test-error")
     def raise_error():
         raise RuntimeError("Boom!")
 
-    # Register only once
-    if "test_errors" not in app.blueprints:
-        app.register_blueprint(test_bp)
-
-    response = client.get("/api/v1/test-error")
+    with app.test_client() as client:
+        response = client.get("/api/v1/test-error")
 
     assert response.status_code == 500
 
