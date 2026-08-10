@@ -55,6 +55,44 @@ steps:
     pathToSources: 'backend'
   displayName: 'Publish Coverage Report'
 
+# Create Security Reports Directory
+- script: |
+    mkdir -p backend/reports/security
+  displayName: 'Create Security Reports Directory'
+
+# Run Bandit SAST Scan
+- script: |
+    cd backend
+
+    bandit -r app \
+      -f json \
+      -o reports/security/bandit.json
+  displayName: 'Run Bandit SAST Scan'
+
+# Run Safety Dependency Scan
+- script: |
+    cd backend
+
+    safety scan --output json > reports/security/safety.json || true
+  displayName: 'Run Dependency Scan'
+
+# Run Semgrep Scan
+- script: |
+    cd backend
+
+    semgrep scan \
+      --config auto \
+      --json \
+      --output reports/security/semgrep.json || true
+  displayName: 'Run Semgrep Scan'
+
+# Publish Security Reports
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'backend/reports/security'
+    ArtifactName: 'security-reports'
+  displayName: 'Publish Security Reports'
+
 # Build Docker Image
 - script: |
     docker build -t expense-tracker-api:latest ./backend
