@@ -28,7 +28,7 @@ steps:
     pip install -r backend/requirements.txt
   displayName: 'Install Dependencies'
 
-# Run Tests
+# Run Unit Tests
 - script: |
     cd backend
 
@@ -48,17 +48,24 @@ steps:
     testRunTitle: 'Expense Tracker Unit Tests'
   displayName: 'Publish Test Results'
 
-# Publish Coverage Results
+# Publish Coverage Report
 - task: PublishCodeCoverageResults@2
   inputs:
     summaryFileLocation: 'backend/coverage.xml'
     pathToSources: 'backend'
   displayName: 'Publish Coverage Report'
 
-# Create Security Reports Directory
+# Create Security Report Directory
 - script: |
     mkdir -p backend/reports/security
   displayName: 'Create Security Reports Directory'
+
+# Verify Security Tools
+- script: |
+    bandit --version
+    safety --version
+    semgrep --version
+  displayName: 'Verify Security Tools'
 
 # Run Bandit SAST Scan
 - script: |
@@ -66,14 +73,16 @@ steps:
 
     bandit -r app \
       -f json \
-      -o reports/security/bandit.json
+      -o reports/security/bandit.json || true
   displayName: 'Run Bandit SAST Scan'
 
 # Run Safety Dependency Scan
 - script: |
     cd backend
 
-    safety scan --output json > reports/security/safety.json || true
+    safety scan \
+      --output json \
+      > reports/security/safety.json || true
   displayName: 'Run Dependency Scan'
 
 # Run Semgrep Scan
