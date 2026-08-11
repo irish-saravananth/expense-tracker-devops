@@ -165,8 +165,8 @@ Azure DevOps Pipeline
 | Sprint    | Objective               | Status      |
 | --------- | ----------------------- | ----------- |
 | Sprint 1  | Project Foundation      | ✅ Completed |
-| Sprint 2  | Backend Development     | ⏳ Planned   |
-| Sprint 3  | Frontend Development    | ⏳ Planned   |
+| Sprint 2  | Backend Development     | ✅ Completed |
+| Sprint 3  | Frontend Development    | ✅ Completed |
 | Sprint 4  | Docker Containerization | ⏳ Planned   |
 | Sprint 5  | Kubernetes Deployment   | ⏳ Planned   |
 | Sprint 6  | Terraform Automation    | ⏳ Planned   |
