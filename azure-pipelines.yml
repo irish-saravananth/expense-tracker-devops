@@ -105,4 +105,13 @@ steps:
 # Build Docker Image
 - script: |
     docker build -t expense-tracker-api:latest ./backend
-  displayName: 'Build Docker Image'
+=======
+- script: |
+    python -m py_compile backend/app/__init__.py
+    python -m py_compile backend/app/config/settings.py
+    python -m py_compile backend/app/database/db.py
+  displayName: 'Validate Python Syntax'
+
+- script: |
+    docker build -t expense-tracker-api ./backend
+displayName: 'Build Docker Image'
