@@ -1,27 +1,111 @@
 trigger:
-  branches:
-    include:
-      - develop
-      - feature/*
+  - feature/cicd-pipeline
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 variables:
   pythonVersion: '3.12'
 
 steps:
 
+# Use Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(pythonVersion)'
   displayName: 'Use Python $(pythonVersion)'
 
+# Debug Repository Structure
+- script: |
+    pwd
+    ls -la
+    find . -type f | sort
+  displayName: 'Debug Repository Structure'
+
+# Install Dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r backend/requirements.txt
   displayName: 'Install Dependencies'
 
+# Run Unit Tests
+- script: |
+    cd backend
+
+    pytest tests \
+      --junitxml=test-results.xml \
+      --cov=app \
+      --cov-report=xml:coverage.xml \
+      --cov-report=html
+  displayName: 'Run Unit Tests'
+
+# Publish Test Results
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'backend/test-results.xml'
+    failTaskOnFailedTests: true
+    testRunTitle: 'Expense Tracker Unit Tests'
+  displayName: 'Publish Test Results'
+
+# Publish Coverage Report
+- task: PublishCodeCoverageResults@2
+  inputs:
+    summaryFileLocation: 'backend/coverage.xml'
+    pathToSources: 'backend'
+  displayName: 'Publish Coverage Report'
+
+# Create Security Report Directory
+- script: |
+    mkdir -p backend/reports/security
+  displayName: 'Create Security Reports Directory'
+
+# Verify Security Tools
+- script: |
+    bandit --version
+    safety --version
+    semgrep --version
+  displayName: 'Verify Security Tools'
+
+# Run Bandit SAST Scan
+- script: |
+    cd backend
+
+    bandit -r app \
+      -f json \
+      -o reports/security/bandit.json || true
+  displayName: 'Run Bandit SAST Scan'
+
+# Run Dependency Scan
+- script: |
+    cd backend
+
+    pip-audit \
+      --format json \
+      --output reports/security/pip-audit.json || true
+  displayName: 'Run Dependency Scan'
+
+# Run Semgrep Scan
+- script: |
+    cd backend
+
+    semgrep scan \
+      --config auto \
+      --json \
+      --output reports/security/semgrep.json || true
+  displayName: 'Run Semgrep Scan'
+
+# Publish Security Reports
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'backend/reports/security'
+    ArtifactName: 'security-reports'
+  displayName: 'Publish Security Reports'
+
+# Build Docker Image
+- script: |
+    docker build -t expense-tracker-api:latest ./backend
+=======
 - script: |
     python -m py_compile backend/app/__init__.py
     python -m py_compile backend/app/config/settings.py
@@ -30,4 +114,4 @@ steps:
 
 - script: |
     docker build -t expense-tracker-api ./backend
-  displayName: 'Build Docker Image'
+displayName: 'Build Docker Image'
