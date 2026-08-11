@@ -76,13 +76,13 @@ steps:
       -o reports/security/bandit.json || true
   displayName: 'Run Bandit SAST Scan'
 
-# Run Safety Dependency Scan
+# Run Dependency Scan
 - script: |
     cd backend
 
-    safety scan \
-      --output json \
-      > reports/security/safety.json || true
+    pip-audit \
+      --format json \
+      --output reports/security/pip-audit.json || true
   displayName: 'Run Dependency Scan'
 
 # Run Semgrep Scan

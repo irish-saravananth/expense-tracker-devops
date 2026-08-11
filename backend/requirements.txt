@@ -20,5 +20,5 @@ marshmallow==4.0.1
 bcrypt==4.3.0
 
 semgrep
-safety
+pip-audit
 bandit
