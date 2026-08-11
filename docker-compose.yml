@@ -32,15 +32,8 @@ services:
     ports:
       - "5001:5001"
 
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: expense_tracker
-      DB_USER: expense_user
-      DB_PASSWORD: expense_password
-      SECRET_KEY: dev-super-secret-key-change-this-to-a-long-random-string
-      JWT_SECRET_KEY: 8b2d8d9f5a3e7c1f9d0b4e6a8c2f7d5e9a1b3c4d5e6f7a8b
-      FLASK_ENV: production
+    env_file:
+      - .env
 
     depends_on:
       postgres:
